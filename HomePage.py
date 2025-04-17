@@ -47,10 +47,10 @@ with st.container():
     </div>
     """, unsafe_allow_html=True)
 
-    uploaded_file = st.file_uploader("Upload your pension statement (.csv)", type="csv")
+    uploadedFile = st.file_uploader("Upload your pension statement (.csv)", type="csv")
 
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file)
+    if uploadedFile:
+        df = pd.read_csv(uploadedFile)
         st.session_state["pension_data"] = df
         st.success("File uploaded successfully!")
         st.dataframe(df.head())

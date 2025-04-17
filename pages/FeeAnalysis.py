@@ -64,10 +64,10 @@ if "pension_data" in st.session_state:
     st.plotly_chart(feeFigure)
 
     st.subheader("Growth vs. Fees")
-    fig_bubble = px.scatter(pensionDf, x="Annual Fee %", y="Growth %", size="Fund Value",
+    bubbleFig = px.scatter(pensionDf, x="Annual Fee %", y="Growth %", size="Fund Value",
                             color="Fund Name", hover_name="Fund Name",
                             title="Fund Growth vs. Fees")
-    st.plotly_chart(fig_bubble)
+    st.plotly_chart(bubbleFig)
 
     st.subheader("Fund Clustering (AI Insight)")
     features = pensionDf[["Annual Fee %", "Growth %", "Fund Value"]]
@@ -76,11 +76,11 @@ if "pension_data" in st.session_state:
     kmeans = KMeans(n_clusters=3, random_state=0)
     pensionDf["Cluster"] = kmeans.fit_predict(X_scaled)
 
-    fig_cluster = px.scatter(pensionDf, x="Annual Fee %", y="Growth %",
+    clusterFig = px.scatter(pensionDf, x="Annual Fee %", y="Growth %",
                              color=pensionDf["Cluster"].astype(str), size="Fund Value",
                              hover_name="Fund Name",
                              title="AI-Identified Clusters of Funds")
-    st.plotly_chart(fig_cluster)
+    st.plotly_chart(clusterFig)
 
 else:
     st.warning("⚠️ Please upload your CSV file on the homepage before visiting this page.")

@@ -62,23 +62,23 @@ X_scaled = scaler.fit_transform(features)
 model = NearestNeighbors(n_neighbors=2)
 model.fit(X_scaled)
 
-internal_recs = []
+internalFundRecs = []
 for idx, row in df.iterrows():
     distances, indices = model.kneighbors([X_scaled[idx]])
     for neighborIdx in indices[0][1:]:
         rec = df.iloc[neighborIdx]
         if rec["Annual Fee %"] < row["Annual Fee %"] and rec["Growth %"] >= row["Growth %"]:
-            internal_recs.append({
+            internalFundRecs.append({
                 "Fund Name": row["Fund Name"],
                 "Suggested Internal Fund": rec["Fund Name"],
                 "Alt. Fee % (Internal)": rec["Annual Fee %"],
                 "Alt. Growth % (Internal)": rec["Growth %"]
             })
 
-internal_df = pd.DataFrame(internal_recs)
+internalDataFrama = pd.DataFrame(internalFundRecs)
 
 tickers = ["VWRL.L", "VUSA.L", "AGBP.L", "BNDX", "SSAC.L", "ESGE", "IWDA.AS", "ARKK", "VIG", "AOR"]
-real_funds = []
+realFunds = []
 
 for ticker in tickers:
     try:
@@ -92,7 +92,7 @@ for ticker in tickers:
             start_price = hist["Close"].iloc[0]
             end_price = hist["Close"].iloc[-1]
             growth = ((end_price - start_price) / start_price) / 3
-            real_funds.append({
+            realFunds.append({
                 "Fund Name": name,
                 "Ticker": ticker,
                 "Annual Fee %": fee_percent,
@@ -101,12 +101,12 @@ for ticker in tickers:
     except Exception:
         continue
 
-real_df = pd.DataFrame(real_funds)
+real_df = pd.DataFrame(realFunds)
 real_recs = []
 
-for _, row in df.iterrows():
+for x, row in df.iterrows():
     matches = []
-    for _, real in real_df.iterrows():
+    for x, real in real_df.iterrows():
         fee_diff = row["Annual Fee %"] - real["Annual Fee %"]
         growth_diff = real["Growth %"] - row["Growth %"]
         score = (growth_diff * 2) + (fee_diff * 1)
@@ -123,7 +123,7 @@ for _, row in df.iterrows():
 
 real_df_rec = pd.DataFrame(real_recs)
 merged = df[["Fund Name", "Annual Fee %", "Growth %", "Fund Value"]].copy()
-merged = pd.merge(merged, internal_df, on="Fund Name", how="left")
+merged = pd.merge(merged, internalDataFrama, on="Fund Name", how="left")
 merged = pd.merge(merged, real_df_rec, on="Fund Name", how="left")
 merged = merged.dropna(subset=["Suggested Internal Fund", "Suggested Real Fund"], how="all")
 st.subheader("Combined Fund Recommendations")
@@ -131,7 +131,7 @@ st.dataframe(merged)
 
 chart_data = []
 
-for _, row in merged.iterrows():
+for x, row in merged.iterrows():
     base_val = row["Fund Value"]
     chart_data.append({
         "Fund": row["Fund Name"],
@@ -169,7 +169,7 @@ pdf.set_font("Arial", "B", 14)
 pdf.cell(0, 10, "PensionIQ Recommendation Summary", ln=True, align="C")
 pdf.ln(10)
 pdf.set_font("Arial", "", 12)
-for _, row in merged.iterrows():
+for x, row in merged.iterrows():
     int_rec = row["Suggested Internal Fund"] if pd.notna(row["Suggested Internal Fund"]) else "None"
     ext_rec = row["Suggested Real Fund"] if pd.notna(row["Suggested Real Fund"]) else "None"
     pdf.multi_cell(0, 10, f"Fund: {row['Fund Name']}\n"
