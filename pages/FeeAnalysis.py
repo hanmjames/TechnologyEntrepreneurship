@@ -58,15 +58,11 @@ if "pension_data" in st.session_state:
     st.subheader("Estimated Fee Cost Over 20 Years")
     st.dataframe(pensionDf[["Fund Name", "Annual Fee %", "Fund Value", "Fee Cost (20Y)"]])
 
-    feeFigure = px.bar(pensionDf, x="Fund Name", y="Fee Cost (20Y)",
-                     title="Projected 20-Year Cost of Fees per Fund",
-                     color="Fund Name", text="Fee Cost (20Y)")
+    feeFigure = px.bar(pensionDf, x="Fund Name", y="Fee Cost (20Y)", title="Projected 20-Year Cost of Fees per Fund", color="Fund Name", text="Fee Cost (20Y)")
     st.plotly_chart(feeFigure)
 
     st.subheader("Growth vs. Fees")
-    bubbleFig = px.scatter(pensionDf, x="Annual Fee %", y="Growth %", size="Fund Value",
-                            color="Fund Name", hover_name="Fund Name",
-                            title="Fund Growth vs. Fees")
+    bubbleFig = px.scatter(pensionDf, x="Annual Fee %", y="Growth %", size="Fund Value", color="Fund Name", hover_name="Fund Name", title="Fund Growth vs. Fees")
     st.plotly_chart(bubbleFig)
 
     st.subheader("Fund Clustering (AI Insight)")
@@ -76,10 +72,7 @@ if "pension_data" in st.session_state:
     kmeans = KMeans(n_clusters=3, random_state=0)
     pensionDf["Cluster"] = kmeans.fit_predict(X_scaled)
 
-    clusterFig = px.scatter(pensionDf, x="Annual Fee %", y="Growth %",
-                             color=pensionDf["Cluster"].astype(str), size="Fund Value",
-                             hover_name="Fund Name",
-                             title="AI-Identified Clusters of Funds")
+    clusterFig = px.scatter(pensionDf, x="Annual Fee %", y="Growth %", color=pensionDf["Cluster"].astype(str), size="Fund Value", hover_name="Fund Name", title="AI-Identified Clusters of Funds")
     st.plotly_chart(clusterFig)
 
 else:

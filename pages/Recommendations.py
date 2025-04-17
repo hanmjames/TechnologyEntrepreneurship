@@ -69,10 +69,7 @@ for idx, row in df.iterrows():
         rec = df.iloc[neighborIdx]
         if rec["Annual Fee %"] < row["Annual Fee %"] and rec["Growth %"] >= row["Growth %"]:
             internalFundRecs.append({
-                "Fund Name": row["Fund Name"],
-                "Suggested Internal Fund": rec["Fund Name"],
-                "Alt. Fee % (Internal)": rec["Annual Fee %"],
-                "Alt. Growth % (Internal)": rec["Growth %"]
+                "Fund Name": row["Fund Name"], "Suggested Internal Fund": rec["Fund Name"], "Alt. Fee % (Internal)": rec["Annual Fee %"], "Alt. Growth % (Internal)": rec["Growth %"]
             })
 
 internalDataFrama = pd.DataFrame(internalFundRecs)
@@ -93,71 +90,45 @@ for ticker in tickers:
             end_price = hist["Close"].iloc[-1]
             growth = ((end_price - start_price) / start_price) / 3
             realFunds.append({
-                "Fund Name": name,
-                "Ticker": ticker,
-                "Annual Fee %": fee_percent,
-                "Growth %": round(growth * 100, 2)
-            })
+                "Fund Name": name, "Ticker": ticker, "Annual Fee %": fee_percent, "Growth %": round(growth * 100, 2)})
     except Exception:
         continue
 
-real_df = pd.DataFrame(realFunds)
-real_recs = []
+realDataFrame = pd.DataFrame(realFunds)
+realFundRecs = []
 
 for x, row in df.iterrows():
     matches = []
-    for x, real in real_df.iterrows():
-        fee_diff = row["Annual Fee %"] - real["Annual Fee %"]
-        growth_diff = real["Growth %"] - row["Growth %"]
-        score = (growth_diff * 2) + (fee_diff * 1)
+    for x, real in realDataFrame.iterrows():
+        feeDiff = row["Annual Fee %"] - real["Annual Fee %"]
+        growthDiff = real["Growth %"] - row["Growth %"]
+        score = (growthDiff * 2) + (feeDiff * 1)
         matches.append((score, real))
     matches.sort(reverse=True, key=lambda x: x[0])
-    best_score, best = matches[0]
-    if best_score > 1:
-        real_recs.append({
-            "Fund Name": row["Fund Name"],
-            "Suggested Real Fund": best["Fund Name"],
-            "Alt. Fee % (Real)": best["Annual Fee %"],
-            "Alt. Growth % (Real)": best["Growth %"]
-        })
+    bestScore, best = matches[0]
+    if bestScore > 1:
+        realFundRecs.append({
+            "Fund Name": row["Fund Name"], "Suggested Real Fund": best["Fund Name"], "Alt. Fee % (Real)": best["Annual Fee %"], "Alt. Growth % (Real)": best["Growth %"]})
 
-real_df_rec = pd.DataFrame(real_recs)
+realDataFrame_rec = pd.DataFrame(realFundRecs)
 merged = df[["Fund Name", "Annual Fee %", "Growth %", "Fund Value"]].copy()
 merged = pd.merge(merged, internalDataFrama, on="Fund Name", how="left")
-merged = pd.merge(merged, real_df_rec, on="Fund Name", how="left")
+merged = pd.merge(merged, realDataFrame_rec, on="Fund Name", how="left")
 merged = merged.dropna(subset=["Suggested Internal Fund", "Suggested Real Fund"], how="all")
 st.subheader("Combined Fund Recommendations")
 st.dataframe(merged)
 
-chart_data = []
+chartData = []
 
 for x, row in merged.iterrows():
-    base_val = row["Fund Value"]
-    chart_data.append({
-        "Fund": row["Fund Name"],
-        "Type": "Current",
-        "Annual Fee %": row["Annual Fee %"],
-        "Growth %": row["Growth %"],
-        "20Y Fee Cost": row["Annual Fee %"] * base_val * 20 / 100
-    })
+    baseFundValue = row["Fund Value"]
+    chartData.append({"Fund": row["Fund Name"], "Type": "Current", "Annual Fee %": row["Annual Fee %"], "Growth %": row["Growth %"], "20Y Fee Cost": row["Annual Fee %"] * baseFundValue * 20 / 100})
     if pd.notna(row["Suggested Internal Fund"]):
-        chart_data.append({
-            "Fund": row["Fund Name"],
-            "Type": "Internal",
-            "Annual Fee %": row["Alt. Fee % (Internal)"],
-            "Growth %": row["Alt. Growth % (Internal)"],
-            "20Y Fee Cost": row["Alt. Fee % (Internal)"] * base_val * 20 / 100
-        })
+        chartData.append({"Fund": row["Fund Name"], "Type": "Internal", "Annual Fee %": row["Alt. Fee % (Internal)"], "Growth %": row["Alt. Growth % (Internal)"], "20Y Fee Cost": row["Alt. Fee % (Internal)"] * baseFundValue * 20 / 100})
     if pd.notna(row["Suggested Real Fund"]):
-        chart_data.append({
-            "Fund": row["Fund Name"],
-            "Type": "Real",
-            "Annual Fee %": row["Alt. Fee % (Real)"],
-            "Growth %": row["Alt. Growth % (Real)"],
-            "20Y Fee Cost": row["Alt. Fee % (Real)"] * base_val * 20 / 100
-        })
+        chartData.append({"Fund": row["Fund Name"], "Type": "Real", "Annual Fee %": row["Alt. Fee % (Real)"], "Growth %": row["Alt. Growth % (Real)"],"20Y Fee Cost": row["Alt. Fee % (Real)"] * baseFundValue * 20 / 100})
 
-viz = pd.DataFrame(chart_data)
+viz = pd.DataFrame(chartData)
 st.subheader("Visual Comparison of Recommendations")
 st.plotly_chart(px.bar(viz, x="Fund", y="Annual Fee %", color="Type", barmode="group", title="Annual Fee Comparison"))
 st.plotly_chart(px.bar(viz, x="Fund", y="Growth %", color="Type", barmode="group", title="Growth Rate Comparison"))
